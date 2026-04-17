@@ -42,7 +42,7 @@ Parse-first, ask-second. Everything derivable from uploaded docs should come fro
 
    **Template requirement**: At least one `.docx` resume must contain the literal section headers `Experience` and `Additional Information` as paragraphs. If none do, tell the user and offer to help restructure one.
 
-3. **Parse identity + profile from uploaded files:**
+3. **Parse identity, profile, AND layout from uploaded files:**
    Read each .pdf in `~/.job-apply/resumes/` with the Read tool. Also read any .pdf in `~/.job-apply/cover-letters/`. Extract:
    - **Name** (from resume header)
    - **Phone** (from contact line)
@@ -51,6 +51,18 @@ Parse-first, ask-second. Everything derivable from uploaded docs should come fro
    - **Target role types** — inferred from job titles, skills, and bullet emphasis across resume variations. Classify into PM, PMM, Growth, GTM, SWE, Marketing, Design, Data, or other.
    - **Professional summary, accomplishments, themes, projects, education, skills** — for the profile file.
    - **Voice/tone observations** from reference cover letters (if any).
+   - **Layout & style observations** — how the user likes their resume to *look*. Note:
+     - **Section order** (e.g., Education → Experience → Additional Information, or Experience → Education → Skills). Different schools / industries prefer different orders.
+     - **Section headers used** — exact wording (e.g., "Professional Experience" vs "Experience", "Additional Information" vs "Skills & Interests").
+     - **Header / contact block style** — name centered or left-aligned; contact info on one line, two, or split.
+     - **Bullet density** — are bullets 1 line, 2 lines, or multi-line? How many per role?
+     - **Date placement** — right-aligned next to company, under title, in parens?
+     - **Bold/italic conventions** — what's bold (company? title?), what's italic (description? school?)?
+     - **Font / size clues** from PDF reading (approximate — exact font lives in the .docx).
+     - **Custom sections** the user has that aren't standard (e.g., "Languages", "Leadership", "Publications", "Volunteer", "Awards"). Keep these in their resumes.
+     - **Cover letter layout** — header format (stacked vs inline), greeting style ("Dear Hiring Manager," vs "Hello {Name},"), signature block.
+
+   **Critically**: when generating a tailored resume, the user's uploaded `.docx` serves as the formatting template — the `generate_resume.py` script clones it. The layout notes in `profile.md` are for *you* (Claude) to know what sections and conventions to preserve when writing `resume-content.json`. Never invent a section the user doesn't have, never drop one they do have (unless explicitly cutting for one-page fit and flagging it).
 
 4. **Write `~/.job-apply/config.json` with what you parsed:**
    ```json
@@ -75,6 +87,7 @@ Parse-first, ask-second. Everything derivable from uploaded docs should come fro
    - **Education** — degrees, schools, relevant programs
    - **Skills & tools** — consolidated skill list
    - **Voice notes** — tone observations from reference cover letters (if any)
+   - **Style & layout** — section order, section header wording, bullet density, date placement, bold/italic conventions, custom sections the user keeps, cover letter header/greeting style. This is what the user wants the output to LOOK like.
    - **Resume variation index** — for each file in `resumes/`, a one-line summary of its emphasis (e.g., "PM-Growth tilt", "Technical PM with ML focus"). Used later to pick the best starting template.
 
 6. **Show the user what you parsed + ask only the gaps:**
@@ -306,33 +319,72 @@ Requires Microsoft Word on Windows/Mac, or LibreOffice on Linux (via `docx2pdf`)
 
 Always generate BOTH .docx and .pdf for resume and cover letter.
 
+## Step 7 — Present deliverables cleanly + invite revisions
+
+After all files exist, present a clean summary to the user. Use this format:
+
+```
+Application packaged for {Company} — {Role}
+
+  Resume         applications/{slug}/{FirstName}_{LastName}_Resume_{Company}_{Role}.pdf
+  Cover letter   applications/{slug}/CoverLetter_{Company}.pdf
+  Outreach       applications/{slug}/outreach.md
+  Tracker        tracker.xlsx (row #{N}, status: Prepping)
+
+Open any file to review. Anything you want changed? I can:
+  — rewrite specific resume bullets or reorder sections
+  — change the cover letter tone, hook, or any paragraph
+  — adjust an outreach message (LinkedIn / cold email / follow-up / referral)
+  — update tracker fields (status, comp, notes, referral)
+  — regenerate the PDF after .docx edits
+```
+
+The "invite revisions" line is not optional — always surface it so the user knows iteration is expected. Don't treat first-pass output as final.
+
+## Revision workflow
+
+When the user asks for changes:
+
+1. **Scope the change precisely before editing.** *"Which bullet — the Acme Corp one about analytics, or the Beta Inc one about onboarding?"* Avoid regenerating the whole resume when they meant to tweak one line.
+
+2. **Edit the JSON, not the .docx.** The source of truth is `resume-content.json` / `cover-letter-content.json` in the application folder. Edit those, then re-run the generator scripts, then re-run `docx_to_pdf.py`. Never hand-edit a generated .docx.
+
+3. **Tracker edits** — use `update_tracker.py update <row#> <field> <value>`. Don't rewrite the whole row.
+
+4. **Confirm after regenerating.** Show the user what changed and re-present the deliverables block.
+
+5. **Persistent preferences** — if the user gives feedback that should apply across all future applications (e.g., *"always use Garamond 11pt for cover letters"* or *"never lead a PM bullet with 'managed'"*), update `~/.job-apply/config.json` or add a `## Style preferences` section to `profile.md` so the guidance persists.
+
 ## File layout after a run
+
+Keep this layout **pristine** on every run — same folder shape, same file names, same order. Consistent structure is part of the product.
 
 ```
 ~/.job-apply/
-  config.json
-  profile.md
-  tracker.xlsx
-  resumes/
-    resume-v1-pm.docx
-    resume-v1-pm.pdf
-    resume-v2-growth.docx
-    resume-v2-growth.pdf
-  cover-letters/
-    old-cl-stripe.pdf
+  config.json                                 # user identity + preferences
+  profile.md                                  # accomplishments, targeting, style
+  tracker.xlsx                                # styled application tracker
+  resumes/                                    # user's uploaded base resumes
+  cover-letters/                              # user's reference cover letters
   applications/
-    stripe-pm-payments/
-      role-analysis.md
-      resume-content.json
-      Jane_Doe_Resume_Stripe_PM.docx
-      Jane_Doe_Resume_Stripe_PM.pdf
-      cover-letter-content.json
-      CoverLetter_Stripe.docx
-      CoverLetter_Stripe.pdf
-      outreach.md
-      outreach-referral.md (if applicable)
-      tracker-entry.json
+    {company-slug}/                           # one folder per application
+      role-analysis.md                        # extracted JD insights
+      resume-content.json                     # source of truth for resume
+      {FirstName}_{LastName}_Resume_{Company}_{Role}.docx
+      {FirstName}_{LastName}_Resume_{Company}_{Role}.pdf
+      cover-letter-content.json               # source of truth for cover letter
+      CoverLetter_{Company}.docx
+      CoverLetter_{Company}.pdf
+      outreach.md                             # all non-referral outreach messages
+      outreach-referral.md                    # referral-specific outreach (if applicable)
+      tracker-entry.json                      # tracker row payload
 ```
+
+**Naming rules** — apply everywhere, no exceptions:
+- `{company-slug}`: lowercase, hyphenated, includes role qualifier if needed — `stripe-pm-payments`, `notion-growth`, `figma-dr-pmm`. Never spaces, underscores, or mixed case.
+- `{Company}` and `{Role}` in filenames: TitleCase, no spaces (`StripePM`, `Notion`, `FigmaPMM`).
+- Never dump stray files (draft.txt, tmp.json, etc.) — keep the folder clean.
+- If iterating on a single application, overwrite — don't create `_v2.docx` variants. Git-style versioning belongs on disk via the `resumes/` base directory, not in application folders.
 
 ## Guidelines
 
