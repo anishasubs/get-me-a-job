@@ -75,6 +75,22 @@ PDF conversion uses `docx2pdf`, which requires:
 
 The skill auto-registers. ✅
 
+> 💡 **Using Claude Cowork or another sandboxed environment?**
+>
+> Claude Cowork can only access folders that already exist — it can't create `~/.get-me-a-job/` for you. Do this once before your first `/get-me-a-job`:
+>
+> **macOS / Linux:**
+> ```bash
+> mkdir -p ~/.get-me-a-job/resumes ~/.get-me-a-job/cover-letters ~/.get-me-a-job/applications
+> ```
+>
+> **Windows (PowerShell):**
+> ```powershell
+> mkdir $env:USERPROFILE\.get-me-a-job\resumes, $env:USERPROFILE\.get-me-a-job\cover-letters, $env:USERPROFILE\.get-me-a-job\applications
+> ```
+>
+> Or skip the dotfolder entirely — pick any existing folder (e.g., `~/Documents/`) when Claude asks where to store your data during onboarding. Claude Code users can ignore this, the skill handles creation automatically.
+
 ### 5. First-time setup
 
 Type:

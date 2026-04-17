@@ -37,6 +37,17 @@ Parse-first, ask-second. Everything derivable from uploaded docs should come fro
    mkdir -p {DATA_DIR}/resumes {DATA_DIR}/cover-letters {DATA_DIR}/applications
    ```
 
+   **If `mkdir` fails** (sandboxed environments like Claude Cowork can only access folders that already exist), the user needs to create the root folder manually first. Tell them exactly this:
+
+   > *"Quick one-time step: I can't create new top-level folders in this environment. Run this in your terminal once, then we'll continue:*
+   >
+   > **macOS/Linux:** `mkdir -p ~/.get-me-a-job/resumes ~/.get-me-a-job/cover-letters ~/.get-me-a-job/applications`
+   > **Windows PowerShell:** `mkdir $env:USERPROFILE\.get-me-a-job\resumes, $env:USERPROFILE\.get-me-a-job\cover-letters, $env:USERPROFILE\.get-me-a-job\applications`
+   >
+   > *Alternatively — want me to use a folder that already exists, like `~/Documents/get-me-a-job/`? I can create subfolders inside an existing parent."*
+
+   Wait for them to confirm and retry the `mkdir`, or adjust `{DATA_DIR}` to the alternative they chose.
+
 2. **Ask the user to upload their documents (and only these):**
    *"To get started, drop your files into `~/.get-me-a-job/`:*
    - *1–5 resume variations into `~/.get-me-a-job/resumes/` (any mix of .docx and .pdf). Include different tailored versions if you have them. The .docx files become formatting templates; PDFs are read for content.*
