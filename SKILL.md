@@ -24,57 +24,67 @@ On macOS/Linux under `~/.job-apply/`.
 
 ### Onboarding flow
 
+Parse-first, ask-second. Everything derivable from uploaded docs should come from the docs — only ask the user for what can't be extracted.
+
 1. **Create the directory structure:**
    ```
    mkdir -p ~/.job-apply/resumes ~/.job-apply/cover-letters ~/.job-apply/applications
    ```
 
-2. **Collect user identity — ask the user:**
-   - Full name (as it should appear on resume/cover letter)
-   - Phone number
-   - Email address
-   - Mailing address (street + city/state) — for cover letter header. Optional.
-   - Target role types — which of PM, PMM, Growth, GTM, SWE, Marketing, Design, Data, or other. Can be multiple.
-   - Any hard constraints (location, remote-only, visa, etc.)
+2. **Ask the user to upload their documents (and only these):**
+   *"To get started, drop your files into `~/.job-apply/`:*
+   - *1–5 resume variations into `~/.job-apply/resumes/` (any mix of .docx and .pdf). Include different tailored versions if you have them. The .docx files become formatting templates; PDFs are read for content.*
+   - *0–5 past cover letters into `~/.job-apply/cover-letters/` (optional — just reference material for voice).*
 
-   Save answers to `~/.job-apply/config.json`:
+   *Tell me when they're in place."*
+
+   Wait for user confirmation, then `ls` both directories to verify.
+
+   **Template requirement**: At least one `.docx` resume must contain the literal section headers `Experience` and `Additional Information` as paragraphs. If none do, tell the user and offer to help restructure one.
+
+3. **Parse identity + profile from uploaded files:**
+   Read each .pdf in `~/.job-apply/resumes/` with the Read tool. Also read any .pdf in `~/.job-apply/cover-letters/`. Extract:
+   - **Name** (from resume header)
+   - **Phone** (from contact line)
+   - **Email** (from contact line)
+   - **Address / city_state** (often in cover letter header; may be absent from resume)
+   - **Target role types** — inferred from job titles, skills, and bullet emphasis across resume variations. Classify into PM, PMM, Growth, GTM, SWE, Marketing, Design, Data, or other.
+   - **Professional summary, accomplishments, themes, projects, education, skills** — for the profile file.
+   - **Voice/tone observations** from reference cover letters (if any).
+
+4. **Write `~/.job-apply/config.json` with what you parsed:**
    ```json
    {
-     "name": "Jane Doe",
-     "phone": "555-123-4567",
-     "email": "jane@example.com",
-     "address": "123 Main Street,",
-     "city_state": "New York, NY",
-     "target_roles": ["PM", "PMM"],
-     "constraints": "Remote or NYC. Needs visa sponsorship.",
+     "name": "<parsed>",
+     "phone": "<parsed>",
+     "email": "<parsed>",
+     "address": "<parsed or empty string>",
+     "city_state": "<parsed or empty string>",
+     "target_roles": ["<inferred>"],
+     "constraints": "",
      "default_font": "Times New Roman",
      "default_font_size": 10
    }
    ```
 
-3. **Ask the user to upload resume variations (up to 5):**
-   - Explain: *"Drop 1–5 resume variations into `~/.job-apply/resumes/` — any mix of .docx and .pdf. If you have different versions tailored to different role types (e.g., PM-focused, Growth-focused), include them. The .docx files will be used as formatting templates; PDFs are read for content."*
-   - Wait for the user to confirm files are in place. Then `ls ~/.job-apply/resumes/` to verify.
-   - **Important**: Each .docx template must contain the literal section headers `Experience` and `Additional Information` as paragraphs for the resume generator to work. If the user's resumes don't match, tell them and offer to help restructure one into a template. The existing content between those headers is what the script uses to learn formatting patterns (bold company, italic description, bold title, bullets).
+5. **Write `~/.job-apply/profile.md` with these sections:**
+   - **Summary** — 2-3 sentence professional identity
+   - **Core accomplishments** — 8-12 bullet points covering strongest, most quantified wins across all uploaded resumes. Dedupe and normalize.
+   - **Themes & differentiators** — unique combinations, career arcs, rare skills
+   - **Project portfolio** — standalone projects, side work, deep-dive initiatives worth mentioning in cover letters
+   - **Education** — degrees, schools, relevant programs
+   - **Skills & tools** — consolidated skill list
+   - **Voice notes** — tone observations from reference cover letters (if any)
+   - **Resume variation index** — for each file in `resumes/`, a one-line summary of its emphasis (e.g., "PM-Growth tilt", "Technical PM with ML focus"). Used later to pick the best starting template.
 
-4. **Ask the user to upload cover letter references (optional, up to 5):**
-   - Explain: *"Drop 0–5 past cover letters into `~/.job-apply/cover-letters/`. These are reference material so I can match your voice — not templates. Skip if you don't have any."*
+6. **Show the user what you parsed + ask only the gaps:**
+   Present a concise summary of what was extracted. Only ask the user for things that **couldn't be derived** or need confirmation:
+   - If address / city_state weren't found: ask (optional — used only for cover letter headers, skip if they don't want it).
+   - Any **hard constraints** not inferable from docs (remote-only, visa sponsorship, location limits, comp floor).
+   - Confirm inferred `target_roles` — *"I'm reading you as a PM / Growth hybrid — want me to add any other role types (PMM, GTM, etc.)?"*
+   - Any corrections to parsed name/email/phone (typos, preferred email, etc.).
 
-5. **Extract profile from uploaded resumes:**
-   - Read each .pdf in `~/.job-apply/resumes/` with the Read tool.
-   - Synthesize into `~/.job-apply/profile.md` with sections:
-     - **Summary** — 2-3 sentence professional identity
-     - **Core accomplishments** — 8-12 bullet points covering the user's strongest, most quantified wins across all uploaded resumes. Dedupe and normalize.
-     - **Themes & differentiators** — unique combinations, career arcs, rare skills
-     - **Project portfolio** — any standalone projects, side work, or deep-dive initiatives worth mentioning in cover letters
-     - **Education** — degrees, schools, relevant programs
-     - **Skills & tools** — consolidated skill list
-     - **Resume variation index** — for each file in `resumes/`, a one-line summary of its emphasis (e.g., "PM-Growth tilt", "Technical PM with ML focus"). Use this later to pick the best starting template.
-
-   Also read reference cover letters (if any) and note tone/voice observations in the profile.
-
-6. **Confirm with user:**
-   - Show them the profile summary and ask them to verify/correct. Adjust `profile.md` based on feedback.
+   Update `config.json` and `profile.md` based on their answers.
 
 7. **Done.** Tell the user onboarding is complete and they can now share a job URL or description to start applying.
 
