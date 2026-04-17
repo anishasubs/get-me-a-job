@@ -156,20 +156,53 @@ Ask the user to confirm or adjust before proceeding.
 
 Read `~/.job-apply/profile.md` (resume variation index section) and recommend the best uploaded resume to use as the template for this role. Explain your reasoning in one line. Let the user override.
 
-## Step 3 — Match Against Profile
+## Step 3 — Match Against Profile + Pre-Generation Preview
 
-1. Read `~/.job-apply/profile.md` (including the **Targeting & narrative** section) and the recommended resume.
+1. Read `~/.job-apply/profile.md` (including **Targeting & narrative** and **Style & layout**) and the recommended resume.
 2. Identify **strong matches** between user's experience and role requirements.
 3. Identify **gaps** — requirements the profile doesn't clearly address.
-4. Suggest which experiences/projects to **emphasize, reframe, or add** — weighted by the user's stated `Emphasize` / `Move away from` preferences.
-5. Recommend specific **keyword integrations** that are natural, not stuffed.
+4. Weight emphasis by the user's stated `Emphasize` / `Move away from` preferences.
 
-Before generating anything, ask the user **sharp, specific personalization questions** informed by the targeting conversation. Good questions reference what you already know:
-- *"You said you want to lean into shipping over GTM — for this PM role, the JD emphasizes launch strategy. Want me to frame your launch work as product ownership or keep it more GTM-flavored to match their language?"*
+**Before generating anything**, present a structured preview and wait for user approval. Use this exact format:
+
+```
+Pre-generation preview — {Company} {Role}
+
+What I'll highlight (resume):
+  1. {Bullet/experience} — maps to {JD requirement}
+  2. {Bullet/experience} — maps to {JD requirement}
+  3. {Bullet/experience} — maps to {JD requirement}
+  4. {Bullet/experience} — maps to {JD requirement}
+  (top 4-6, ranked by relevance)
+
+What I'll lead with (cover letter):
+  Hook: {specific angle — product/campaign/news reference}
+  Proof points: {2-3 examples}
+  Differentiator: {unique angle from profile.md}
+
+Keywords I'll weave in naturally:
+  {keyword 1}, {keyword 2}, {keyword 3}, ...
+
+Resume sections I'll include (matching your layout):
+  {ordered list of sections based on profile.md → Style & layout}
+
+Gaps I'm flagging:
+  - {requirement}: {how I'll address — transferable framing / honest acknowledgment / skip}
+  - {requirement}: ...
+
+Questions before I generate:
+  1. {sharp, specific question informed by targeting}
+  2. {another if needed}
+```
+
+**Good questions reference what you already know**:
+- *"You said you want to lean into shipping over GTM — for this PM role, the JD emphasizes launch strategy. Frame your launch work as product ownership, or GTM-flavored to match their language?"*
 - *"This is one of your named targets. Any recent conversations or insights about the team I should weave into the cover letter?"*
-- *"You mentioned {recent win not on paper}. Relevant here — want me to include it?"*
+- *"You mentioned {recent win not on paper}. Relevant here — include it?"*
 
-Bad questions are generic ones you could have answered yourself from the profile.
+**Bad questions** are generic ones already answered by the profile.
+
+**Do not generate until the user says proceed.** If they tweak the preview (swap a bullet, change the hook, drop a keyword), update and re-present a revised preview. Only write JSON and run scripts once they've approved.
 
 ## Step 4 — Generate Requested Output
 
