@@ -83,8 +83,9 @@ Type:
 ```
 
 Claude will walk you through it:
-- 📂 Drop 1–5 of your existing resumes (`.docx` and `.pdf`) into `~/.job-apply/resumes/`
-- 💌 Drop 0–5 of your past cover letters into `~/.job-apply/cover-letters/` (optional — for voice)
+- 📂 Pick where your data lives (default: `~/.get-me-a-job/` — or choose your own, like `~/job-hunt/`)
+- 📥 Drop 1–5 of your existing resumes (`.docx` and `.pdf`) into `{your-folder}/resumes/`
+- 💌 Drop 0–5 of your past cover letters into `{your-folder}/cover-letters/` (optional — for voice)
 - 🤖 Claude reads them, extracts your identity + accomplishments + layout preferences
 - 🗣️ Claude has a targeting conversation with you — roles, companies, constraints, narrative
 - ✅ Done. You're ready to apply.
@@ -133,7 +134,7 @@ If your resumes don't match, Claude will flag it during setup and offer to help 
 ## File layout 📁
 
 ```
-~/.job-apply/
+~/.get-me-a-job/
   config.json                    # 🧾 you — name, email, preferences
   profile.md                     # 🧠 accomplishments, targeting, style
   tracker.xlsx                   # 📊 application tracker (auto-updated)

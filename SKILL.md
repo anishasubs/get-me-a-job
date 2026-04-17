@@ -11,14 +11,14 @@ You help the user tailor resumes, write cover letters, and draft outreach for jo
 
 Before running the application flow, verify the user has completed setup. Check for these files:
 
-- `~/.job-apply/config.json` — user identity + preferences
-- `~/.job-apply/profile.md` — extracted accomplishments from uploaded resumes
-- `~/.job-apply/resumes/` — at least 1 (up to 5) resume variation (.docx and matching .pdf)
-- `~/.job-apply/cover-letters/` — 0–5 reference cover letters (.docx and/or .pdf)
-- `~/.job-apply/tracker.xlsx` — application tracker (created on first add)
+- `~/.get-me-a-job/config.json` — user identity + preferences
+- `~/.get-me-a-job/profile.md` — extracted accomplishments from uploaded resumes
+- `~/.get-me-a-job/resumes/` — at least 1 (up to 5) resume variation (.docx and matching .pdf)
+- `~/.get-me-a-job/cover-letters/` — 0–5 reference cover letters (.docx and/or .pdf)
+- `~/.get-me-a-job/tracker.xlsx` — application tracker (created on first add)
 
-On Windows these resolve under `C:/Users/<you>/.job-apply/`.
-On macOS/Linux under `~/.job-apply/`.
+On Windows these resolve under `C:/Users/<you>/.get-me-a-job/`.
+On macOS/Linux under `~/.get-me-a-job/`.
 
 **If `config.json` is missing, run the onboarding flow below. Do not proceed with a real application until it completes.**
 
@@ -26,15 +26,21 @@ On macOS/Linux under `~/.job-apply/`.
 
 Parse-first, ask-second. Everything derivable from uploaded docs should come from the docs — only ask the user for what can't be extracted.
 
-1. **Create the directory structure:**
+0. **Confirm the data folder location.** Default is `~/.get-me-a-job/` (matches the skill name, easy to find). Ask:
+
+   *"I'll store your resumes, profile, and tracker in `~/.get-me-a-job/`. Want to keep that, or use a different folder (e.g., `~/job-hunt/`, `~/Documents/career/`)?"*
+
+   Whatever the user chooses is the `{DATA_DIR}` used throughout the rest of this document. Save the chosen path to `~/.get-me-a-job/config.json` as `"data_dir"` — this file acts as a stable pointer so later runs know where the actual data lives. If the user picks the default, `data_dir` just equals `~/.get-me-a-job/`.
+
+1. **Create the directory structure** at `{DATA_DIR}`:
    ```
-   mkdir -p ~/.job-apply/resumes ~/.job-apply/cover-letters ~/.job-apply/applications
+   mkdir -p {DATA_DIR}/resumes {DATA_DIR}/cover-letters {DATA_DIR}/applications
    ```
 
 2. **Ask the user to upload their documents (and only these):**
-   *"To get started, drop your files into `~/.job-apply/`:*
-   - *1–5 resume variations into `~/.job-apply/resumes/` (any mix of .docx and .pdf). Include different tailored versions if you have them. The .docx files become formatting templates; PDFs are read for content.*
-   - *0–5 past cover letters into `~/.job-apply/cover-letters/` (optional — just reference material for voice).*
+   *"To get started, drop your files into `~/.get-me-a-job/`:*
+   - *1–5 resume variations into `~/.get-me-a-job/resumes/` (any mix of .docx and .pdf). Include different tailored versions if you have them. The .docx files become formatting templates; PDFs are read for content.*
+   - *0–5 past cover letters into `~/.get-me-a-job/cover-letters/` (optional — just reference material for voice).*
 
    *Tell me when they're in place."*
 
@@ -43,7 +49,7 @@ Parse-first, ask-second. Everything derivable from uploaded docs should come fro
    **Template requirement**: At least one `.docx` resume must contain the literal section headers `Experience` and `Additional Information` as paragraphs. If none do, tell the user and offer to help restructure one.
 
 3. **Parse identity, profile, AND layout from uploaded files:**
-   Read each .pdf in `~/.job-apply/resumes/` with the Read tool. Also read any .pdf in `~/.job-apply/cover-letters/`. Extract:
+   Read each .pdf in `~/.get-me-a-job/resumes/` with the Read tool. Also read any .pdf in `~/.get-me-a-job/cover-letters/`. Extract:
    - **Name** (from resume header)
    - **Phone** (from contact line)
    - **Email** (from contact line)
@@ -64,7 +70,7 @@ Parse-first, ask-second. Everything derivable from uploaded docs should come fro
 
    **Critically**: when generating a tailored resume, the user's uploaded `.docx` serves as the formatting template — the `generate_resume.py` script clones it. The layout notes in `profile.md` are for *you* (Claude) to know what sections and conventions to preserve when writing `resume-content.json`. Never invent a section the user doesn't have, never drop one they do have (unless explicitly cutting for one-page fit and flagging it).
 
-4. **Write `~/.job-apply/config.json` with what you parsed:**
+4. **Write `~/.get-me-a-job/config.json` with what you parsed:**
    ```json
    {
      "name": "<parsed>",
@@ -79,7 +85,7 @@ Parse-first, ask-second. Everything derivable from uploaded docs should come fro
    }
    ```
 
-5. **Write `~/.job-apply/profile.md` with these sections:**
+5. **Write `~/.get-me-a-job/profile.md` with these sections:**
    - **Summary** — 2-3 sentence professional identity
    - **Core accomplishments** — 8-12 bullet points covering strongest, most quantified wins across all uploaded resumes. Dedupe and normalize.
    - **Themes & differentiators** — unique combinations, career arcs, rare skills
@@ -110,7 +116,7 @@ Parse-first, ask-second. Everything derivable from uploaded docs should come fro
    - **Career narrative** — in one sentence, the story they want to tell. *("Designer who learned to ship and now wants to lead zero-to-one consumer products.")*
    - **Recent wins not yet on paper** — anything significant from the last 6-12 months not yet reflected in the uploaded resumes. Note these separately so they can be woven into future applications even if the base resume hasn't been updated.
 
-   Save the output to `~/.job-apply/profile.md` under a new section:
+   Save the output to `~/.get-me-a-job/profile.md` under a new section:
 
    ```markdown
    ## Targeting & narrative
@@ -154,11 +160,11 @@ Ask the user to confirm or adjust before proceeding.
 
 ## Step 2 — Select Resume Starting Version
 
-Read `~/.job-apply/profile.md` (resume variation index section) and recommend the best uploaded resume to use as the template for this role. Explain your reasoning in one line. Let the user override.
+Read `~/.get-me-a-job/profile.md` (resume variation index section) and recommend the best uploaded resume to use as the template for this role. Explain your reasoning in one line. Let the user override.
 
 ## Step 3 — Match Against Profile + Pre-Generation Preview
 
-1. Read `~/.job-apply/profile.md` (including **Targeting & narrative** and **Style & layout**) and the recommended resume.
+1. Read `~/.get-me-a-job/profile.md` (including **Targeting & narrative** and **Style & layout**) and the recommended resume.
 2. Identify **strong matches** between user's experience and role requirements.
 3. Identify **gaps** — requirements the profile doesn't clearly address.
 4. Weight emphasis by the user's stated `Emphasize` / `Move away from` preferences.
@@ -206,7 +212,7 @@ Questions before I generate:
 
 ## Step 4 — Generate Requested Output
 
-Save everything under `~/.job-apply/applications/{company-slug}/` (e.g., `stripe-pm-payments/`).
+Save everything under `~/.get-me-a-job/applications/{company-slug}/` (e.g., `stripe-pm-payments/`).
 
 ### Resume Tailoring
 - Restructure bullet points to lead with the most relevant experience for THIS role.
@@ -277,7 +283,7 @@ Save referral outreach to `outreach-referral.md` in the application folder and n
 
 ## Step 5 — Update Application Tracker
 
-Tracker lives at `~/.job-apply/tracker.xlsx`.
+Tracker lives at `~/.get-me-a-job/tracker.xlsx`.
 
 ### Add a new application
 
@@ -301,13 +307,13 @@ Write `tracker-entry.json` in the company folder:
 
 Run:
 ```
-python ~/.claude/skills/get-me-a-job/scripts/update_tracker.py ~/.job-apply/tracker.xlsx add <path-to-tracker-entry.json>
+python ~/.claude/skills/get-me-a-job/scripts/update_tracker.py ~/.get-me-a-job/tracker.xlsx add <path-to-tracker-entry.json>
 ```
 
 ### Update a status
 
 ```
-python ~/.claude/skills/get-me-a-job/scripts/update_tracker.py ~/.job-apply/tracker.xlsx update <row#> status "Applied"
+python ~/.claude/skills/get-me-a-job/scripts/update_tracker.py ~/.get-me-a-job/tracker.xlsx update <row#> status "Applied"
 ```
 
 Fields: company, role, type, date_applied, status, resume, cover_letter, outreach, referral, comp, notes, url.
@@ -325,7 +331,7 @@ When the user runs `/job-apply tracker` or `/job-apply status`, read the Excel f
    ```
    python ~/.claude/skills/get-me-a-job/scripts/generate_resume.py \
      <content.json> <output.docx> \
-     --template ~/.job-apply/resumes/<chosen-base-resume>.docx
+     --template ~/.get-me-a-job/resumes/<chosen-base-resume>.docx
    ```
 3. Naming: `{FirstName}_{LastName}_Resume_{Company}_{Role}.docx`.
 
@@ -386,14 +392,14 @@ When the user asks for changes:
 
 4. **Confirm after regenerating.** Show the user what changed and re-present the deliverables block.
 
-5. **Persistent preferences** — if the user gives feedback that should apply across all future applications (e.g., *"always use Garamond 11pt for cover letters"* or *"never lead a PM bullet with 'managed'"*), update `~/.job-apply/config.json` or add a `## Style preferences` section to `profile.md` so the guidance persists.
+5. **Persistent preferences** — if the user gives feedback that should apply across all future applications (e.g., *"always use Garamond 11pt for cover letters"* or *"never lead a PM bullet with 'managed'"*), update `~/.get-me-a-job/config.json` or add a `## Style preferences` section to `profile.md` so the guidance persists.
 
 ## File layout after a run
 
 Keep this layout **pristine** on every run — same folder shape, same file names, same order. Consistent structure is part of the product.
 
 ```
-~/.job-apply/
+~/.get-me-a-job/
   config.json                                 # user identity + preferences
   profile.md                                  # accomplishments, targeting, style
   tracker.xlsx                                # styled application tracker
